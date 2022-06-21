@@ -5,17 +5,17 @@ const isUrlCustomValidator = (value, helpers) => (isURL(value) ? value : helpers
 
 module.exports.validateMovieCreate = celebrate({
   body: Joi.object().keys({
-    country: Joi.string().required().regex(/[\wа-яё\s]/i).min(3)
+    country: Joi.string().required().min(3)
       .max(60),
-    director: Joi.string().required().regex(/[\wа-яё\s]/i),
+    director: Joi.string().required(),
     duration: Joi.number().required().required(),
     year: Joi.string().required().min(2).max(4),
-    description: Joi.string().required().regex(/[\wа-я.:!?"«»;@%№()*#,ё\s]/i),
+    description: Joi.string().required(),
     image: Joi.string().required().custom(isUrlCustomValidator),
-    trailer: Joi.string().required().custom(isUrlCustomValidator),
+    trailerLink: Joi.string().required().custom(isUrlCustomValidator),
     thumbnail: Joi.string().required().custom(isUrlCustomValidator),
-    nameRU: Joi.string().required().regex(/[а-я.:!?"«»;@%№()*#,ё\s]/i),
-    nameEN: Joi.string().required().regex(/[\w.:!?"«»;@%№()*#,\s]/i),
+    nameRU: Joi.string().required(),
+    nameEN: Joi.string().required(),
     movieId: Joi.number().required(),
   }),
 });

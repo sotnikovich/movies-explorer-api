@@ -44,12 +44,11 @@ module.exports.createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequest('Переданы некорректные данные.'));
-      } else if (err.code === 11000) {
-        next(new Conflict('Пользователь с таким email уже зарегистрирован'));
-      } else {
-        next(err);
+        return next(new BadRequest('Переданы некорректные данные.'));
+      } if (err.code === 11000) {
+        return next(new Conflict('Пользователь с таким email уже зарегистрирован'));
       }
+      return next(err);
     });
 };
 
@@ -67,25 +66,30 @@ module.exports.login = (req, res, next) => {
     .catch(() => next(new Unauthorized('Авторизация не пройдена')));
 };
 
-module.exports.updateProfile = (req, res, next) => {
-  const { name, email } = req.body;
+module.exports.updateUser = (req, res, next) => {
+  const { email, name } = req.body;
 
-  User.checkEmailDuplicate(email, req.user._id).then(() => {
-    User.findByIdAndUpdate(req.user._id, { name, email })
-      .then((user) => {
-        if (user) {
-          res.send(user);
-        }
-        return next(new NotFoundError('Пользователь с указанным _id не найден'));
-      })
-      .catch((err) => {
-        if (err.name === 'ValidationError') {
-          return next(new BadRequest('Переданы невалидные данные'));
-        }
-        if (err.name === 'MongoError' && err.code === 11000) {
-          return next(new Conflict('Конфликт данных'));
-        }
-        return next(err);
-      });
-  });
+  User.findByIdAndUpdate(req.user._id, { email, name }, {
+    new: true,
+    runValidators: true,
+    upsert: false,
+  })
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователь с указанным _id не найден');
+      } else {
+        res.send(user);
+      }
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        throw new BadRequest('Переданы невалидные данные');
+      } else if (err.name === 'CastError') {
+        throw new BadRequest('Введен невалидный id пользователя');
+      } else if (err.codeName === 'DuplicateKey') {
+        throw new Conflict('Пользователь с таким email уже существует');
+      }
+      return next(err);
+    })
+    .catch(next);
 };

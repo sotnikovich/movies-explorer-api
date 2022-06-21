@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const { isEmail } = require('validator');
-const Conflict = require('../errors/Conflict');
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -40,16 +39,6 @@ userSchema.statics.findUserByCredentials = function (email, password) {
         return user;
       });
     });
-};
-
-userSchema.statics.checkEmailDuplicate = function (email, excludeId = null) {
-  return this.findOne({ email })
-    .then((user) => {
-      if (user && user._id.toString() !== excludeId) {
-        throw Promise.reject(new Conflict('Пользователь с таким email уже зарегистрирован'));
-      }
-    })
-    .catch((err) => err);
 };
 
 module.exports = mongoose.model('user', userSchema);
