@@ -22,7 +22,7 @@ mongoose.connect(config.mongo_dsn, {
 app.use(requestLogger);
 
 app.use(cors({
-  origin: true,
+  origin: 'https://felaw.movies.nomoredomains.xyz',
   credentials: true,
 }));
 
